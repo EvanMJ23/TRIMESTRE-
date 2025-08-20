@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>TRIMESTRE EVAN</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #224983; margin: 0; padding: 20px; }
+    h1 { text-align: center; color: #222; }
+    .materia { background: #24c285; padding: 20px; margin: 20px auto; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 90%; }
+    .materia h2 { margin-top: 0; color: #0e3028; }
+    input { margin: 5px; padding: 5px; }
+    button { margin: 5px; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; }
+    .add-btn { background: #d8db34; color: white; }
+    .prom-btn { background: #cc6d2e; color: white; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
+    th { background: #f0f0f0; }
+    .promedio { margin-top: 10px; font-weight: bold; color: #444; }
+    .motivacion { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: white; display: flex; justify-content: center; align-items: center; font-size: 2em; text-align: center; padding: 20px; z-index: 1000; display: none; white-space: pre-wrap; }
+    #promedio-general { text-align: center; margin: 20px; font-size: 1.5em; color: #000; }
+    #guardar { display: block; margin: 0 auto; background: #e67e22; color: white; font-size: 16px; padding: 10px 20px; }
+    .accion-btn { background: #e74c3c; color: white; padding: 3px 6px; border-radius: 4px; margin-left: 2px; cursor: pointer; }
+    .editar-btn { background: #3498db; color: white; padding: 3px 6px; border-radius: 4px; margin-left: 2px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<h1>📘 TRIMESTRE EVAN 📘</h1>
+<div id="contenedor-materias"></div>
+
+<div style="text-align:center;">
+  <button class="prom-btn" onclick="promediarTodo()">PROMEDIAR TODAS LAS MATERIAS</button>
+  <button id="guardar" onclick="guardarTabla()">GUARDAR TABLA</button>
+</div>
+
+<div id="promedio-general">Promedio Trimestral: -</div>
+<div id="motivacion" class="motivacion"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const materias = [
+  "SOPORTE TECNICO","MATEMATICAS","FISICA","QUIMICA","LENGUA Y LITERATURA",
+  "EDUCACION FISICA","EDUCACION PARA LA CIUDADANIA","ECA","SISTEMAS OPERATIVOS Y REDES",
+  "EMPRENDIMIENTO","INGLES","PROGRAMACION","BIOLOGIA","FILOSOFIA","HISTORIA",
+  "APLICACIONES OFIMATICAS","CIVICA"
+];
+
+function idMateria(nombre) { return nombre.replace(/\s+/g, '_').toLowerCase(); }
+function crearMateria(nombre) {
+  const idMat = idMateria(nombre);
+  return `
+    <div class="materia" id="${idMat}">
+      <h2>${nombre}</h2>
+      <input type="text" placeholder="Tipo (Tarea, Examen...)" id="tipo-${idMat}">
+      <input type="number" placeholder="Nota" id="nota-${idMat}" min="0" max="10">
+      <button class="add-btn" onclick="agregarNota('${idMat}')">AÑADIR</button>
+      <button class="prom-btn" onclick="promediarMateria('${idMat}')">PROMEDIAR</button>
+      <table id="tabla-${idMat}"><tr><th>Tipo</th><th>Nota</th><th>Acciones</th></tr></table>
+      <div class="promedio" id="prom-${idMat}">Promedio: -</div>
+    </div>
+  `;
+}
+document.getElementById("contenedor-materias").innerHTML = materias.map(m => crearMateria(m)).join("");
+
+const frases = [
+  "¡No te rindas! Los tropiezos son la base del éxito. 💪✨",
+  "Sigue adelante, cada esfuerzo cuenta. 🚀",
+  "Cada error te acerca más a la victoria. 🏆",
+  "¡Lo estás haciendo increíble! 🌟",
+  "Pequeños pasos llevan a grandes logros. 🐾",
+  "La constancia vence cualquier dificultad. 🔥",
+  "Cree en ti y lograrás lo imposible. 🌈",
+  "El éxito es la suma de pequeños esfuerzos. 💼",
+  "Cada día es una nueva oportunidad. ☀️",
+  "Aprender de los errores es ganar experiencia. 📘",
+  "El esfuerzo de hoy es la victoria de mañana. 🏅",
+  "No te compares, compite contigo mismo. 🏃‍♂️",
+  "Sigue intentándolo, los resultados llegarán. ⏳",
+  "La disciplina es el puente al éxito. 🌉",
+  "Lo difícil de hoy será tu fuerza mañana. 💪",
+  "Cada desafío es una oportunidad de crecer. 🌱",
+  "La paciencia y el esfuerzo todo lo logran. 🕰️",
+  "Transforma los obstáculos en aprendizaje. ⚡",
+  "No te detengas, tu meta te espera. 🎯",
+  "La motivación se encuentra en la acción. ⚡",
+  "El trabajo duro siempre da frutos. 🍎",
+  "Tu actitud determina tu altitud. ✈️",
+  "El camino al éxito está lleno de intentos. 🚧",
+  "Cada nota suma a tu futuro brillante. 🌟",
+  "Los errores no definen, enseñan. 📖",
+  "Avanza, incluso si es un paso pequeño. 👣",
+  "El fracaso es parte del aprendizaje. 🔄",
+  "Sé constante, verás los resultados. 🏁",
+  "Nunca subestimes tu potencial. 💥",
+  "Los tropiezos son escalones hacia arriba. 🪜",
+  "Aprender es un viaje, no un destino. 🧭",
+  "Tú puedes con esto y más. 💫",
+  "Lo imposible solo tarda más tiempo. ⏱️",
+  "Con cada intento te acercas a la meta. 🥇",
+  "No importa cuántas veces caigas, levántate. 🤸‍♂️",
+  "Tu esfuerzo de hoy es tu orgullo mañana. 🏆",
+  "La motivación nace de la acción, no de esperar. ⚡",
+  "Pequeños logros son grandes victorias. 🎉",
+  "Mantén la calma y sigue estudiando. 🧘‍♂️",
+  "El éxito es la recompensa de la perseverancia. 🏅"
+];
+
+// Cargar datos de localStorage
+let datos = JSON.parse(localStorage.getItem("notasEv")) || {};
+materias.forEach(m => {
+  const idMat = idMateria(m);
+  if(datos[idMat]){
+    datos[idMat].forEach(notaObj => agregarFilaTabla(idMat, notaObj.tipo, notaObj.nota));
+  }
+});
+
+function agregarNota(materia) {
+  const tipo = document.getElementById("tipo-"+materia).value;
+  const nota = parseFloat(document.getElementById("nota-"+materia).value);
+  if(tipo && !isNaN(nota)){
+    agregarFilaTabla(materia, tipo, nota);
+    if(!datos[materia]) datos[materia]=[];
+    datos[materia].push({tipo, nota});
+    localStorage.setItem("notasEv", JSON.stringify(datos));
+    document.getElementById("tipo-"+materia).value="";
+    document.getElementById("nota-"+materia).value="";
+    if(nota < 8){
+      const frase = frases[Math.floor(Math.random()*frases.length)];
+      mostrarMotivacion(frase);
+    }
+  }
+}
+
+function agregarFilaTabla(materia, tipo, nota){
+  const tabla = document.getElementById("tabla-"+materia);
+  const row = tabla.insertRow();
+  const celTipo = row.insertCell(0);
+  const celNota = row.insertCell(1);
+  const celAccion = row.insertCell(2);
+  celTipo.innerText = tipo;
+  celNota.innerText = nota;
+  celAccion.innerHTML = `
+    <span class="editar-btn" onclick="editarNota('${materia}',this)">✏️</span>
+    <span class="accion-btn" onclick="borrarNota('${materia}',this)">🗑️</span>
+  `;
+}
+
+function borrarNota(materia, btn){
+  const fila = btn.parentElement.parentElement;
+  const tipo = fila.cells[0].innerText;
+  const nota = parseFloat(fila.cells[1].innerText);
+  fila.remove();
+  datos[materia] = datos[materia].filter(n => n.tipo!==tipo || n.nota!==nota);
+  localStorage.setItem("notasEv", JSON.stringify(datos));
+  promediarMateria(materia);
+}
+
+function editarNota(materia, btn){
+  const fila = btn.parentElement.parentElement;
+  const tipo = prompt("Editar tipo:", fila.cells[0].innerText);
+  const nota = prompt("Editar nota:", fila.cells[1].innerText);
+  if(tipo && !isNaN(parseFloat(nota))){
+    fila.cells[0].innerText = tipo;
+    fila.cells[1].innerText = parseFloat(nota);
+    // Actualizar localStorage
+    const array = datos[materia];
+    const index = array.findIndex(n => n.tipo===fila.cells[0].innerText && n.nota===parseFloat(nota));
+    if(index!==-1){ array[index]={tipo, nota: parseFloat(nota)} }
+    localStorage.setItem("notasEv", JSON.stringify(datos));
+    promediarMateria(materia);
+  }
+}
+
+function promediarMateria(materia){
+  const filas = document.querySelectorAll(`#tabla-${materia} tr`);
+  let suma=0, count=0;
+  filas.forEach((fila,i)=>{
+    if(i>0){
+      const nota=parseFloat(fila.cells[1].innerText);
+      if(!isNaN(nota)){ suma+=nota; count++; }
+    }
+  });
+  const prom = count?(suma/count).toFixed(2):"0.00";
+  document.getElementById("prom-"+materia).innerText="Promedio: "+prom;
+  return count?parseFloat(prom):null;
+}
+
+function promediarTodo(){
+  let suma=0, count=0;
+  materias.forEach(m=>{
+    const prom=promediarMateria(idMateria(m));
+    if(prom!==null){ suma+=prom; count++; }
+  });
+  const promGen = count?(suma/count).toFixed(2):"0.00";
+  document.getElementById("promedio-general").innerText="Promedio Trimestral: "+promGen;
+}
+
+function mostrarMotivacion(texto){
+  const div = document.getElementById("motivacion");
+  div.innerText="";
+  div.style.display="flex";
+  let i=0;
+  const velocidad=50;
+  function escribirLetra(){
+    if(i<texto.length){ div.innerText+=texto.charAt(i); i++; setTimeout(escribirLetra,velocidad); }
+  }
+  escribirLetra();
+  setTimeout(()=>{div.style.display="none";}, texto.length*velocidad + 2000);
+}
+
+function guardarTabla(){
+  html2canvas(document.body,{backgroundColor:"#ffffff"}).then(canvas=>{
+    let enlace=document.createElement("a");
+    enlace.download="TRIMESTRE_EVAN.png";
+    enlace.href=canvas.toDataURL();
+    enlace.click();
+  });
+}
+</script>
+</body>
+</html>
